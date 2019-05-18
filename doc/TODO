@@ -4,12 +4,12 @@
 - First working version:
 //	- "import" the "so" files specified in the CLI
 //	- discover loaded test functions and invoke them properly
-	- fork the process and run individual tests.
-	- read back test result through SHM.
+//	- fork the process and run individual tests.
+//	- read back test result through SHM.
 
-	- print test results
+//	- print test results
 
-	- provide assertion functions for the clients
+//	- provide assertion functions for the clients
 	- provide expectation setting functions for the client
 		(eg.: shoud exit with status 15, set_timeout, should result sigseg, etc)
 
@@ -42,4 +42,5 @@
 - demonstration
 	- use the tester for the library used by this project
 
-
+- library:
+	- externalize utility units
