@@ -1,0 +1,4 @@
+**/*.so
+**/*.elf
+**/*.out
+src/c/lct

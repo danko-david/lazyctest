@@ -1,0 +1,26 @@
+
+LazyCTest (LCT) accepts a shared object compiled with LCT library.
+
+(When valgrind requested, before opening the shared library, LCT `execve`
+	itself to run with valgrind)
+	
+
+Opens the Shared Object and looks for the LTC_TESTABLE_SHARED_OBJECT.
+
+Collects all function symbols start with "test_" in the shared object.
+
+To execute test in safe environment:
+	- opens a shared mmap region
+	- fork
+	- some safety and notification ordination:
+		- close unrelated mmaps ()
+		- set a bit on mmapto notify on a possible crash, that the fork'd
+			process is going to start the test.
+	- run collected test
+	- on failure: write stack trace and message into the shm region
+	- before do exit, set the flag on an shm region to register normal process
+		termination 
+
+	- write test results in a standard format.
+
+	- exit with a specifix exit status
