@@ -119,11 +119,6 @@ void print_discovered_functions(array arr)
 	}
 }
 
-void test_something()
-{
-	printf("Call test_something done.\n");
-}
-
 int collect_all_function_symbol
 (
 	const char *libpath,
@@ -246,28 +241,16 @@ static void init_processing_queue(struct processing_queues* q)
 	short_lock_init(&q->done.lock);
 }
 
-
-void write_results(struct processing_queues* tad)
+void print_console(void* user, const char* str)
 {
-	struct queue_element* elem = tad->done.queue->head;
-	while(NULL != elem)
-	{
-		struct test_job* test = (struct test_job*) elem;
-		printf
-		(
-			"Test result: %s is %s\nDetails:\n\
--------------------------------------- 8< --------------------------------------\n\
-%s\n\
--------------------------------------- 8< --------------------------------------\
-\n\n\n",
-			test->elf->name,
-			lct_fetch_test_evaluation_result(test->test_evaluation_result),
-			test->test_txt_result
-		);
-
-		elem = elem->next;
-	}
+	printf(str);
 }
+
+void write_to_file(void* user, const char* str)
+{
+	write(*((int*)user), str, strlen(str));
+}
+
 
 /**
  * TODO args:
@@ -319,7 +302,39 @@ int main(int argc, char **argv)
 	//TODO collect results and print
 
 	//TODO publish results to output file
-	write_results(&tad);
+	//dump_test_results(&tad);
+
+	void (*append)(void*, const char*) = print_console;
+
+	int fd;
+	{
+		char file[50];
+
+		char dstr[25];
+		time_t now = time(NULL);
+		struct tm *t = gmtime(&now);
+		strftime(dstr, sizeof(dstr)-1, "%Y-%m-%d_%H:%M:%SU", t);
+
+
+		sprintf(file, "lct_result_%s.junit.xml", dstr);
+		fd = open(file, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+		if(fd < 0)
+		{
+			printf("Can't create output file (%s), so print everything to stdout.\n", file);
+		}
+		else
+		{
+			append = write_to_file;
+		}
+	}
+
+	write_test_result_junit(&tad, append, &fd);
+
+	if(fd > -1)
+	{
+		fsync(fd);
+		close(fd);
+	}
 	lct_exit_with_reason(LCT_EXIT_SUCCESS);
 	return 0;
 }

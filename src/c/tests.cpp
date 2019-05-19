@@ -17,7 +17,6 @@ class something
 	}
 };
 
-
 extern "C"
 {
 	void test_find_me()
@@ -36,5 +35,19 @@ extern "C"
 		TEST_ASSERT_STR_EQUAL("reference", val);
 	}
 
+	void test_sleep_and_exit()
+	{
+		lct_test_set_excepted_exit_status(0);
+		usleep(5000);
+		exit(0);
+	}
+
+	void test_sigsegv()
+	{
+		lct_test_set_excepted_sigsegv();
+		char* val = NULL;
+		val[0] = 10;
+		//TEST_ASSERT_EQUAL(0,strcmp((const char*)NULL, "str"));
+	}
 }
 

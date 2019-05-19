@@ -1,4 +1,7 @@
 **/*.so
 **/*.elf
 **/*.out
+**/*.out.*
+**/lct_*.junit.xml
+WD/
 src/c/lct

@@ -2,29 +2,17 @@
 #ifndef LAZYCTESTER_H
 #define LAZYCTESTER_H
 
-#include <stdint.h>
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
-
-#include <sys/types.h>
+#include "include.h"
 
 #include <dlfcn.h>
-
 #include <link.h>
-
 #include <signal.h>
 
 #include "utils.h"
 #include "symbols.h"
-
 #include "lazyctest.h"
-#include "lct_testing.h"
 
 #include <sys/wait.h>
-
 
 enum lct_exit_reasons
 {
@@ -33,6 +21,8 @@ enum lct_exit_reasons
 	LCT_EXIT_BAD_SHARED_OBJECT,
 	LCT_EXIT_INTERNAL_ERROR,
 };
+
+void print_stack_trace();
 
 const char* lct_fetch_exit_reason(enum lct_exit_reasons reason);
 

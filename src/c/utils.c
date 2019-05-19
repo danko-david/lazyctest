@@ -489,6 +489,13 @@ void* array_try_get(array arr, uint index)
 
 /***********/
 
+void str_append_continue(char** sb, size_t* sbl, char* str)
+{
+	int len = strlen(str);
+	*sbl = *sbl - len;
+	*sb = str + len;
+}
+
 int str_append(char** dst, size_t* max_size, char* content)
 {
 	return str_post_append(dst, max_size, safe_strcpy(*dst, *max_size, content));

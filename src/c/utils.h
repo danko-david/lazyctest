@@ -136,6 +136,7 @@ void array_pnt_free_all(void** array_addr);
 
 void array_pnt_dbg_printf_char_array(void** array, char* array_name);
 
+void str_append_continue(char** sb, size_t* sbl, char* str);
 int str_append(char** dst, size_t* max_size, char* content);
 
 int safe_strcpy(char* dst, int max_length, const char* src);

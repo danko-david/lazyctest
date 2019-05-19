@@ -2,8 +2,20 @@
 #ifndef LAZYCTEST_H
 #define LAZYCTEST_H
 
-#include "include.h"
-#include "utils.h"
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdint.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdbool.h>
+#include <errno.h>
+
+#include <stdarg.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+//#include "utils.h"
 
 #ifdef __cplusplus
 extern "C"
@@ -17,6 +29,13 @@ extern "C"
 
 void render_stack_strace(char* dst, size_t max_size);
 
+#ifndef UTILS_H_
+struct queue_element
+{
+	struct queue_element* prev;
+	struct queue_element* next;
+};
+#endif
 
 enum lct_test_status_flag
 {
@@ -28,15 +47,27 @@ enum lct_test_status_flag
 
 
 	LCT_TEST_PARENT_RETURN,
+
+	LCT_TEST_CHILD_SIGSEGV,
+	LCT_TEST_ASSERT_ERROR,
 };
 
 enum lct_test_evaluation_result
 {
 	LCT_RESULT_INCOMPLETE,
 	LCT_RESULT_SUCCESS,
-	LCT_RESULT_FAILUIRE,
+	LCT_RESULT_FAILURE,
 	LCT_RESULT_INTERNAL_ERROR
 };
+
+enum lct_test_except_type
+{
+	LCT_EXCEPT_VOID_RETURN,
+	LCT_EXCEPT_EXIT_STATUS,
+	LCT_EXCEPT_SIGSEGV,
+};
+
+const char* lct_fetch_expectation(enum lct_test_except_type);
 
 const char* lct_fetch_test_evaluation_result(enum lct_test_evaluation_result);
 
@@ -55,8 +86,14 @@ struct test_job
 	uint64_t verify_pattern0;
 
 	struct elf_symbol* elf;
-	pid_t parent_pid;
+
+	time_t test_start_time;
+	time_t test_end_time;
+
 	pid_t child_pid;
+
+	enum lct_test_except_type excepted_test_outcome;
+	int excepted_exit_status;
 
 	uint32_t test_status_flags;
 
@@ -66,7 +103,7 @@ struct test_job
 
 	int proc_exit;
 
-	int test_evaluation_result;
+	enum lct_test_evaluation_result test_evaluation_result;
 
 	uint64_t verify_pattern2;
 };
@@ -75,9 +112,15 @@ extern struct test_job* LCT_CURRENT_TEST_JOB;
 
 void lct_ensure_test_environment();
 
+void lct_append_result_text(char* msg);
+
+void lct_append_stack_strace();
+
 void lct_set_status_flag(struct test_job* job, enum lct_test_status_flag);
 
 void lct_test_pass();
+
+time_t get_current_time_milisec();
 
 void lct_test_failed
 (
@@ -86,6 +129,11 @@ void lct_test_failed
 	const char *fmt,
 	...
 );
+
+void lct_test_set_excepted_void_return();
+void lct_test_set_excepted_exit_status(int excepted_exit_status);
+void lct_test_set_excepted_sigsegv();
+
 
 /****************************** source: novaprova *****************************/
 

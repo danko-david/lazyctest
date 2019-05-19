@@ -1,6 +1,4 @@
 
-
-
 - First working version:
 //	- "import" the "so" files specified in the CLI
 //	- discover loaded test functions and invoke them properly
@@ -10,8 +8,9 @@
 //	- print test results
 
 //	- provide assertion functions for the clients
-	- provide expectation setting functions for the client
-		(eg.: shoud exit with status 15, set_timeout, should result sigseg, etc)
+//	- provide expectation setting functions for the client
+//		(eg.: shoud exit with status 15, set_timeout, should result sigseg, etc)
+		- set timeout
 
 - features:
 	- run with valgrind
@@ -30,13 +29,15 @@
 	- include some test
 
 - CLI:
+//	- installable program
 	- parse CLI options
 	- print proper help when unknown or bad CLI argument present
-	- specify test or test set (regex match) to run
+	- specify test or test set (regex match or exact list) to run
 
 - test result publish:
-	- print out all test result after end
+//	- print out all test result after end
 	- find a standard test result publishing format and implement output writer
+//		- JUNIT output (stdout)
 		Guidlines: must be integratable eg: into jenkins
 
 - demonstration

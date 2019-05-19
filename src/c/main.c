@@ -6,5 +6,6 @@
 #include "worker_pool.c"
 #include "pcre_util.c"
 #include "lct_testing.c"
+#include "lct_result_writer.c"
 #include "lazyctest.c"
 #include "lazyctester.c"

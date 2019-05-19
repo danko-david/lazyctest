@@ -9,6 +9,12 @@
 
 #include <stdarg.h>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
+
 #ifdef INCLUDE_NOVAPROVA
 	#define TEST_ASSERT_EQUAL NP_ASSERT_EQUAL
 	#define TEST_ASSERT_PTR_EQUAL NP_ASSERT_PTR_EQUAL
