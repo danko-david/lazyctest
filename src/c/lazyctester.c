@@ -38,30 +38,6 @@ int lct_print_help_and_exit()
 	lct_exit_with_reason(LCT_EXIT_BAD_CLI_ARG_PARAM);
 }
 
-void print_stack_trace()
-{
-#ifdef __GLIBC__
-	void* array[10];
-	size_t size;
-	char** strings;
-	size_t i;
-
-	size = backtrace(array, 10);
-	strings = backtrace_symbols(array, size);
-
-	printf("Obtained %zd stack frames.\n", size);
-
-	for(i = 0; i < size; i++)
-	{
-		printf ("%s\n", strings[i]);
-	}
-
-	free (strings);
-#else
-	printf("//TODO implement `print_stack_trace` on this platform!\n");
-#endif
-}
-
 array TEST_FUNCTION_MATCHERS;
 
 void lct_sigsegv_print_stack_trace_then_exit()
@@ -298,11 +274,6 @@ int main(int argc, char **argv)
 		wp_destroy(&pool);
 		//printf("exit\n");
 	}
-
-	//TODO collect results and print
-
-	//TODO publish results to output file
-	//dump_test_results(&tad);
 
 	void (*append)(void*, const char*) = print_console;
 

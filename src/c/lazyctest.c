@@ -23,7 +23,29 @@ const char* lct_fetch_test_evaluation_result(enum lct_test_evaluation_result r)
 	return "Unregistered result type";
 }
 
-void print_stack_trace(void);
+void print_stack_trace()
+{
+#ifdef __GLIBC__
+	void* array[10];
+	size_t size;
+	char** strings;
+	size_t i;
+
+	size = backtrace(array, 10);
+	strings = backtrace_symbols(array, size);
+
+	printf("Obtained %zd stack frames.\n", size);
+
+	for(i = 0; i < size; i++)
+	{
+		printf ("%s\n", strings[i]);
+	}
+
+	free (strings);
+#else
+	printf("//TODO implement `print_stack_trace` on this platform!\n");
+#endif
+}
 
 const char* lct_fetch_expectation(enum lct_test_except_type type)
 {

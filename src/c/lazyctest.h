@@ -120,6 +120,8 @@ void lct_set_status_flag(struct test_job* job, enum lct_test_status_flag);
 
 void lct_test_pass();
 
+void print_stack_trace();
+
 time_t get_current_time_milisec();
 
 void lct_test_failed
