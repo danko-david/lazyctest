@@ -339,7 +339,7 @@ int main(int argc, char **argv)
 		strftime(dstr, sizeof(dstr)-1, "%Y-%m-%d_%H:%M:%SU", t);
 
 
-		sprintf(file, "lct_result_%s.junit.xml", dstr);
+		sprintf(file, "lct_result_%s_%d.junit.xml", dstr, getpid());
 		fd = open(file, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 		if(fd < 0)
 		{
