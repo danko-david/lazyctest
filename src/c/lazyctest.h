@@ -137,6 +137,10 @@ void lct_test_set_excepted_exit_status(int excepted_exit_status);
 void lct_test_set_excepted_sigsegv();
 
 
+void lct_free_regex();
+void lct_free_tasks();
+void lct_close_dls();
+
 /****************************** source: novaprova *****************************/
 
 #define TEST_ASSERT(cc) \

@@ -139,7 +139,7 @@ static void init_test_function_matchers()
 	compile_and_add_regex(TEST_FUNCTION_MATCHERS, "__test__");
 }
 
-void open_dl_file(const char* dl_file, int verbosity)
+void* open_dl_file(const char* dl_file, int verbosity)
 {
 	if(verbosity > 0)
 	{
@@ -162,13 +162,15 @@ void open_dl_file(const char* dl_file, int verbosity)
 		open = real_path;
 	}
 
-	if(NULL == dlopen(open, RTLD_NOW | RTLD_GLOBAL))
+	void* handle = dlopen(open, RTLD_NOW | RTLD_GLOBAL);
+	if(NULL == handle)
 	{
 		printf("Can't open shared object: %s\n", dlerror());
 		lct_exit_with_reason(LCT_EXIT_BAD_SHARED_OBJECT);
 	}
 
 	free(real_path);
+	return handle;
 }
 
 void* ql_pop(struct queue_with_lock* qwl)
@@ -206,17 +208,6 @@ void thread_function(void* param)
 	}
 }
 
-static void init_processing_queue(struct processing_queues* q)
-{
-	memset(q, 0, sizeof(struct processing_queues));
-
-	q->task.queue = queue_create();
-	short_lock_init(&q->task.lock);
-
-	q->done.queue = queue_create();
-	short_lock_init(&q->done.lock);
-}
-
 void print_console(void* user, const char* str)
 {
 	printf(str);
@@ -225,6 +216,66 @@ void print_console(void* user, const char* str)
 void write_to_file(void* user, const char* str)
 {
 	write(*((int*)user), str, strlen(str));
+}
+
+
+void lct_free_regex()
+{
+	for(int i=0;i<TEST_FUNCTION_MATCHERS->length;++i)
+	{
+		regex_destroy((Regex) TEST_FUNCTION_MATCHERS->arr[i]);
+		free(TEST_FUNCTION_MATCHERS->arr[i]);
+	}
+	
+	//TODO impl array free in toe
+	free(TEST_FUNCTION_MATCHERS->arr);
+	free(TEST_FUNCTION_MATCHERS);
+}
+
+static int LCT_OPENED_DLS_COUNT;
+static void** LCT_OPENED_DLS;
+
+void lct_close_dls()
+{
+	for(int i=0;i<LCT_OPENED_DLS_COUNT;++i)
+	{
+		if(NULL != LCT_OPENED_DLS[i])
+		{
+			dlclose(LCT_OPENED_DLS[i]);
+		}
+	}
+	free(LCT_OPENED_DLS);
+}
+
+static struct processing_queues* LCT_TASK_QUEUES;
+
+void lct_free_tasks()
+{
+	void* ref = NULL;
+	/*while(NULL != (ref = queue_pop_tail(LCT_TASK_QUEUES->done.queue)))
+	{
+		free(ref);
+	}
+	
+	while(NULL != (ref = queue_pop_tail(LCT_TASK_QUEUES->task.queue)))
+	{
+		free(ref);
+	}
+	*/
+	free(LCT_TASK_QUEUES->task.queue);
+	free(LCT_TASK_QUEUES->done.queue);
+	free(LCT_TASK_QUEUES);
+}
+
+static void init_test_queues()
+{
+	LCT_TASK_QUEUES = malloc_zero(sizeof(struct processing_queues));
+
+	LCT_TASK_QUEUES->task.queue = queue_create();
+	short_lock_init(&LCT_TASK_QUEUES->task.lock);
+
+	LCT_TASK_QUEUES->done.queue = queue_create();
+	short_lock_init(&LCT_TASK_QUEUES->done.lock);
 }
 
 
@@ -246,20 +297,21 @@ int main(int argc, char **argv)
 
 	reg_sigsegv();
 	init_test_function_matchers();
-
+	init_test_queues();
+	
+	LCT_OPENED_DLS_COUNT = argc;
+	LCT_OPENED_DLS = malloc_zero(argc* sizeof(void*));
+	
 	for(int i=1;i<argc;++i)
 	{
-		open_dl_file(argv[i], 0);
+		LCT_OPENED_DLS[i] = open_dl_file(argv[i], 0);
 	}
 
-	struct processing_queues tad;
-	init_processing_queue(&tad);
-
-	symbols(collect_all_function_symbol, tad.task.queue);
+	symbols(collect_all_function_symbol, LCT_TASK_QUEUES->task.queue);
 
 	if(1 == concurrency)
 	{
-		thread_function(&tad);
+		thread_function(LCT_TASK_QUEUES);
 	}
 	else
 	{
@@ -267,7 +319,7 @@ int main(int argc, char **argv)
 		wp_init(&pool);
 		for(int i=0;i<concurrency;++i)
 		{
-			wp_submit_task(&pool, thread_function, &tad);
+			wp_submit_task(&pool, thread_function, LCT_TASK_QUEUES);
 		}
 		//printf("wait_exit\n");
 		wp_wait_exit(&pool);
@@ -299,13 +351,22 @@ int main(int argc, char **argv)
 		}
 	}
 
-	write_test_result_junit(&tad, append, &fd);
+	write_test_result_junit(LCT_TASK_QUEUES, append, &fd);
 
 	if(fd > -1)
 	{
 		fsync(fd);
 		close(fd);
 	}
+	
+	
+	{
+		//proper cleanup
+		lct_free_regex();
+		lct_free_tasks();
+		lct_close_dls();
+	}
+	
 	lct_exit_with_reason(LCT_EXIT_SUCCESS);
 	return 0;
 }

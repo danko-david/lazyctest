@@ -192,7 +192,10 @@ void handle_test_child(struct test_job* job)
 void do_test_in_child(struct test_job* job)
 {
 	LCT_CURRENT_TEST_JOB = job;
-
+	
+	lct_free_regex();
+	lct_free_tasks();
+	
 	reg_test_sigsegv();
 
 	job->test_start_time = get_current_time_milisec();
@@ -217,7 +220,8 @@ void do_test_in_child(struct test_job* job)
 		getpid(),
 		dstr
 	);
-
+	
+	//unecessary: lct_close_dls();
 	exit(0);
 }
 

@@ -195,6 +195,9 @@ void write_test_result_junit
 
 		append(user_data, "\t</testsuite>\n");
 	}
+	
+	free(rgs->arr);
+	free(rgs);
 
 	append(user_data, "</testsuites>\n");
 }
